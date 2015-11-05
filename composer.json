@@ -1,0 +1,12 @@
+{
+    "name": "domus/mea",
+    "description": "bla bla bla",
+    "authors": [
+        {
+            "name": "dan",
+            "email": "dan@imediat.eu"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
