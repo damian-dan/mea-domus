@@ -2,6 +2,7 @@
 Smart box using RPi to control temperature and in general ... surveillance
 # Setup
 ## Prerequirements
+- PHP  7 (there is another repo about how to install PHP 7 on an ARM architecture)
 - composer
 ## Installation steps
 ```
@@ -12,7 +13,6 @@ git clone https://github.com/damian-dan/mea-domus.git
 composer install
 ```
 
- 
 We have two scripts:
 1. To play with the relay itself
 2. To read and write data within the common storage. This will enfore in the end:
