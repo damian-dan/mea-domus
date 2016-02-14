@@ -1,6 +1,8 @@
 # mea-domus
 Smart box using RPi to control temperature and in general ... surveillance
 # Installation
+## Prerequirements
+
  cd /home/pi
  git clone https://github.com/damian-dan/mea-domus.git
  
