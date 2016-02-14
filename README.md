@@ -1,10 +1,14 @@
 # mea-domus
 Smart box using RPi to control temperature and in general ... surveillance
-# Installation
+# Setup
 ## Prerequirements
 - composer
- cd /home/pi
- git clone https://github.com/damian-dan/mea-domus.git
+## Installation steps
+
+-- cd /home/pi
+-- git clone https://github.com/damian-dan/mea-domus.git
+-- composer install
+
  
 We have two scripts:
 1. To play with the relay itself
