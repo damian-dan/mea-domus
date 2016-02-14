@@ -21,15 +21,14 @@ $sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
 //$sid->createNewSid("info");
 //$sid->updateSidInfo("info");
 //$sid->kill();
-$gpio = new GPIO();
+/*$gpio = new GPIO();
 $id=0;
 $gpio->setup($id, "out");
 $gpio->output($id, 0);
 $gpio->output($id, 1);
 sleep(0.5);
 $gpio->output($id, 0);
-
-exit();
+exit();*/
 
 while(1){
     try{
