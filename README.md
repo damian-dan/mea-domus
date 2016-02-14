@@ -13,6 +13,7 @@ cd /home/pi
 ```
 git clone https://github.com/damian-dan/mea-domus.git
 composer install
+chmod +x /home/pi/mea-domus/bin/run.php
 ```
 
 We have two scripts:
