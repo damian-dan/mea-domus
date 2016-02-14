@@ -4,10 +4,13 @@ Smart box using RPi to control temperature and in general ... surveillance
 ## Prerequirements
 - composer
 ## Installation steps
-
--- cd /home/pi
--- git clone https://github.com/damian-dan/mea-domus.git
--- composer install
+'''
+cd /home/pi
+'''
+'''
+git clone https://github.com/damian-dan/mea-domus.git
+composer install
+'''
 
  
 We have two scripts:
