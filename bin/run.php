@@ -5,11 +5,11 @@
 
 $logFile = "logs/app.log";
 $defaultValue = 19;
-$sharedFile = "data/tmp.txt";
-
+$sharedFile = "/data/temp.txt";
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Helper\SidHelper;
+use Helper\SmartBoxModel;
 use PhpGpio\Gpio;
 
 $log = new Monolog\Logger('home');
@@ -22,13 +22,15 @@ $sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
 //$sid->updateSidInfo("info");
 //$sid->kill();
 /*$gpio = new GPIO();
-$id=0;
+$id=17;
 $gpio->setup($id, "out");
 $gpio->output($id, 0);
+sleep(1);
 $gpio->output($id, 1);
 sleep(0.5);
 $gpio->output($id, 0);
-exit();*/
+exit();
+*/
 
 while(1){
     try{
@@ -38,40 +40,57 @@ while(1){
             $log->addError("Value could not be read");
             throw new \Exception("File does not exits");
         }
-        $desired = (int)strstr($value,"\n",true);
-
+        $desired = (float)strstr($value,"\n",true);
+	
+	$sb = new SmartBoxModel();
+	$current = $sb->getTempBySerial('28-00043c2d49ff');
+var_dump($value);
         isLowerThan($current, $desired);
-
-        echo $desired;
     }catch (\Exception $e)
     {
+	echo $e->getMessage();
         $log->addError($e->getMessage());
+	exit();
+
     }
-    sleep(0.1);
+    sleep(1);
 }
 
 function isLowerThan ($current, $desired)
 {
-    $diff = (int)($desired - $actual);
-    if ($diff > 0.5)
+    var_dump($current, $desired);
+    $diff = (int)($current - $desired);
+    echo $diff . " \n";
+    if ($diff < 0.5)
     {
         doStartUpTheFire();
     }elseif (diff < 0.5 && diff > 0.2)
     {
-        doStartUpTheFire();
+        doShutDownTheFire();
     }else
     {
-        doNothing();
+        doShutDownTheFire();
     }
 
 }
 
 function doStartUpTheFire()
 {
-    $gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
-    $gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
-    $gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
-    sleep (0.5);
+    echo "Start-or-Resume";
+    $gpio_off = shell_exec("/usr/local/bin/gpio mode 0 out");
+    $gpio_off = shell_exec("/usr/local/bin/gpio write 0 1");
+    //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
+    sleep (1);
+}
+
+function doShutDownTheFire()
+{
+    echo "End";
+    $gpio_off = shell_exec("/usr/local/bin/gpio mode 0 out");
+    $gpio_off = shell_exec("/usr/local/bin/gpio write 0 0");
+    //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
+    sleep (1);
+
 }
 
 function doNothing(){
