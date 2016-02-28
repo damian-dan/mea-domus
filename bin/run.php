@@ -1,7 +1,26 @@
 #!/usr/bin/env php
 <?php
+declare(ticks = 1);
 
-    // Single File Application :)
+pcntl_signal(SIGTERM, "signal_handler");
+pcntl_signal(SIGINT, "signal_handler");
+
+function signal_handler($signal) {
+    switch($signal) {
+        case SIGTERM:
+            print "Caught SIGTERM\n";
+            exit;
+        case SIGKILL:
+            print "Caught SIGKILL\n";
+            exit;
+        case SIGINT:
+            doShutDownTheFire();
+            print "Caught SIGINT\n";
+            exit;
+    }
+}
+
+// Single File Application :)
 
 $logFile = "logs/app.log";
 $defaultValue = 19;
@@ -11,6 +30,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Helper\SidHelper;
 use Helper\SmartBoxModel;
 use PhpGpio\Gpio;
+use Symfony\Component\HttpFoundation\Request; // ToDo: Use Goute or smth else that should act as a Rest Client
 
 $log = new Monolog\Logger('home');
 $log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . "/../" . $logFile, Monolog\Logger::WARNING));
@@ -34,23 +54,24 @@ exit();
 
 while(1){
     try{
-        $value = @file_get_contents(__DIR__ . '/../' .$sharedFile);
+        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
         if($value === FALSE)
         {
             $log->addError("Value could not be read");
             throw new \Exception("File does not exits");
         }
-        $desired = (float)strstr($value,"\n",true);
-	
-	$sb = new SmartBoxModel();
-	$current = $sb->getTempBySerial('28-00043c2d49ff');
-var_dump($value);
+        $sb = new SmartBoxModel();
+        $current = $sb->getTempBySerial('28-00043c2d49ff');
+
+        //ToDo: change it to validate if pin can be initialized
+        $out = shell_exec("/usr/local/bin/gpio mode 0 out");
+
         isLowerThan($current, $desired);
     }catch (\Exception $e)
     {
-	echo $e->getMessage();
+        echo $e->getMessage();
         $log->addError($e->getMessage());
-	exit();
+        exit();
 
     }
     sleep(1);
@@ -58,17 +79,21 @@ var_dump($value);
 
 function isLowerThan ($current, $desired)
 {
-    var_dump($current, $desired);
-    $diff = (int)($current - $desired);
-    echo $diff . " \n";
-    if ($diff < 0.5)
+    echo "tmp curenta: " . $current . "\n";
+    echo "tmp ceruta: " . $desired . "\n";
+    $diff = $current - $desired;
+    echo "Dif: " . $diff . " \n";
+    if ($diff > 0.5)
     {
+        echo "x";
         doStartUpTheFire();
-    }elseif (diff < 0.5 && diff > 0.2)
+    }elseif (($diff > 0.2) && ($diff < 0.5) )
     {
+        echo "z";
         doShutDownTheFire();
     }else
     {
+        echo "t";
         doShutDownTheFire();
     }
 
@@ -76,9 +101,20 @@ function isLowerThan ($current, $desired)
 
 function doStartUpTheFire()
 {
-    echo "Start-or-Resume";
-    $gpio_off = shell_exec("/usr/local/bin/gpio mode 0 out");
-    $gpio_off = shell_exec("/usr/local/bin/gpio write 0 1");
+    echo "Start-or-Resume \n";
+    $status = shell_exec("/usr/local/bin/gpio read 0");
+    echo "Status Initial:" . $status . "\n";
+    if ($status == 0){
+        $status = shell_exec("/usr/local/bin/gpio write 0 1");
+        $status = shell_exec("/usr/local/bin/gpio read 0");
+        $sid = 1;
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid . '/type/start', 'GET');
+        //Guzzle
+        //CI rest
+        // packagsit: php rest client
+
+    }
+
     //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
     sleep (1);
 }
@@ -86,9 +122,11 @@ function doStartUpTheFire()
 function doShutDownTheFire()
 {
     echo "End";
-    $gpio_off = shell_exec("/usr/local/bin/gpio mode 0 out");
-    $gpio_off = shell_exec("/usr/local/bin/gpio write 0 0");
-    //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
+    $status = shell_exec("/usr/local/bin/gpio read 0");
+    if ($status == 1 ){
+        $gpio_off = shell_exec("/usr/local/bin/gpio write 0 0");
+        $sid = 1;
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid . '/type/stop', 'GET');    }
     sleep (1);
 
 }
