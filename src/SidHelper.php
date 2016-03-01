@@ -93,7 +93,8 @@ class SidHelper
         file_put_contents($this->directory . $this->name, $sidName);
         
         //create a folder with the ID name
-        mkdir($this->directory. "/sids/" . $sidName);
+        mkdir($this->directory. "/sids/" . $sidName)
+;
         
         file_put_contents($this->directory. "/sids/" . $sidName . "/info.log", "Started Sid at: " . date("Y-m-d H:i:s") ." \n" );
     }
@@ -151,13 +152,8 @@ class SidHelper
     */
     private function getHighestSid()
     {
-        $i = new \GlobIterator($this->directory . "/sids/*");
-        try {
-            $count = $i->count();
-        }catch ( \LogicException $e) {
-            $count = 0;
-        }
+        $i = array_diff(scandir($this->directory . "/sids/"), array(".",".."));
         
-        return $count;
+        return max($i);
     }
 }
