@@ -38,7 +38,7 @@ $log->addWarning('Foo bar');
 $log->addError("good");
 
 $sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
-//$sid->createNewSid("info");
+$sid->createNewSid("info");
 //$sid->updateSidInfo("info");
 //$sid->kill();
 /*$gpio = new GPIO();
@@ -79,9 +79,12 @@ while(1){
 
 function isLowerThan ($current, $desired)
 {
+    global $sid;
+    $desired = 27;
     echo "tmp curenta: " . $current . "\n";
     echo "tmp ceruta: " . $desired . "\n";
-    $diff = $current - $desired;
+
+    $diff = $desired - $current;
     echo "Dif: " . $diff . " \n";
     if ($diff > 0.5)
     {
@@ -89,8 +92,12 @@ function isLowerThan ($current, $desired)
         doStartUpTheFire();
     }elseif (($diff > 0.2) && ($diff < 0.5) )
     {
-        echo "z";
-        doShutDownTheFire();
+        if (($sid->getSessionStartTime() + (60*5)) < strtotime(date("D M j Y G:i:s")))
+	{
+	    //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
+	    echo "Edge case: after 5 minutes, we want to cancel the fire";
+            doShutDownTheFire();
+	}
     }else
     {
         echo "t";
@@ -101,18 +108,29 @@ function isLowerThan ($current, $desired)
 
 function doStartUpTheFire()
 {
+    global $sid;
     echo "Start-or-Resume \n";
     $status = shell_exec("/usr/local/bin/gpio read 0");
     echo "Status Initial:" . $status . "\n";
     if ($status == 0){
         $status = shell_exec("/usr/local/bin/gpio write 0 1");
         $status = shell_exec("/usr/local/bin/gpio read 0");
-        $sid = 1;
-        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid . '/type/start', 'GET');
+	$sid->startNewCycle();
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/start', 'GET');
         //Guzzle
         //CI rest
         // packagsit: php rest client
 
+    }else{
+	if (($sid->getSessionStartTime() + (30*60)) < strtotime(date("D M j Y G:i:s")))
+	{
+	    // Maximum execution time has been reached
+	    //ToDo: Special Case: Log it
+	    echo "The fire is already burning for 30 minutes; give it some sleep/rest ";
+	    doShutDownTheFire();
+	    // ToDo: Config
+	    sleep(50*5);
+	}
     }
 
     //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
@@ -121,13 +139,15 @@ function doStartUpTheFire()
 
 function doShutDownTheFire()
 {
+    // ToDo: 1. add $sid as parameter | 2. add sleep as param | 3. Add $sid->getDetails as mixed object
+    global $sid;
     echo "End";
     $status = shell_exec("/usr/local/bin/gpio read 0");
     if ($status == 1 ){
         $gpio_off = shell_exec("/usr/local/bin/gpio write 0 0");
-        $sid = 1;
-        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid . '/type/stop', 'GET');    }
-    sleep (1);
+	$sid->stopNewCycle();
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/stop', 'GET');    }
+        sleep (1);
 
 }
 
