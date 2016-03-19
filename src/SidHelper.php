@@ -93,8 +93,7 @@ class SidHelper
         file_put_contents($this->directory . $this->name, $sidName);
         
         //create a folder with the ID name
-        mkdir($this->directory. "/sids/" . $sidName)
-;
+        mkdir($this->directory. "/sids/" . $sidName);
         
         file_put_contents($this->directory. "/sids/" . $sidName . "/info.log", "Started Sid at: " . date("Y-m-d H:i:s") ." \n" );
     }
@@ -144,6 +143,39 @@ class SidHelper
         
         return file_get_contents($pidFile);
     }
+
+    public function getSidDetails()
+    {
+	$start_file = $this->directory . "/sids/" . $this->getCurrentSidId() . "/start";
+	if (!file_exists($start_file))
+	{
+	    return false;
+	}
+	
+	return file_get_contents($startfile);
+    }
+
+    public function startNewCycle()
+    {
+	$startFile = $this->directory . "/sids/". $this->getCurrentSidId() . "/start";
+	file_put_contents($startFile, date("D M j Y G:i:s"));
+
+    }
+
+    public function stopNewCycle()
+    {
+	$startFile = $this->directory . "/sids/". $this->getCurrentSidId() . "/stop";
+	file_put_contents($startFile, date("D M j Y G:i:s"));
+
+    }
+
+    public function getSessionStartTime()
+    {
+	$startTime = file_get_contents($this->directory . "/sids/". $this->getCurrentSidId() . "/start");
+	
+	return strtotime($startTime);
+    }
+    
     
     /**
     * Returns the current Sessions number
@@ -152,7 +184,7 @@ class SidHelper
     */
     private function getHighestSid()
     {
-        $i = array_diff(scandir($this->directory . "/sids/"), array(".",".."));
+        $i = array_diff(scandir($this->directory . "/sids/", 0), array(".","..", "README.md"));
         
         return max($i);
     }
