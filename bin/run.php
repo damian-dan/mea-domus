@@ -32,12 +32,7 @@ $sid->createNewSid("info");
 
 while(1){
     try{
-        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
-        if($value === FALSE)
-        {
-            $log->addError("Value could not be read");
-            throw new \Exception("File does not exits");
-        }
+	$desired = getDesiredTemperature();
         $sb = new SmartBoxModel();
         $current = $sb->getTempBySerial($senzors[$mainSenzor]);
 
@@ -55,6 +50,19 @@ while(1){
     sleep(1);
 }
 
+// Retrieve the desired temperature from a shared txt file. Should chane to a different storage :)
+function getDesiredTemperature()
+{
+        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
+        if($value === FALSE)
+        {
+            $log->addError("Value could not be read");
+            throw new \Exception("File does not exits");
+        }
+
+    return $desired;
+
+}
 function isLowerThan ($current, $desired)
 {
     global $sid;
