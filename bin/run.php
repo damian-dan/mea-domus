@@ -1,30 +1,18 @@
 #!/usr/bin/env php
 <?php
-declare(ticks = 1);
 
-pcntl_signal(SIGTERM, "signal_handler");
-pcntl_signal(SIGINT, "signal_handler");
-
-function signal_handler($signal) {
-    switch($signal) {
-        case SIGTERM:
-            print "Caught SIGTERM\n";
-            exit;
-        case SIGKILL:
-            print "Caught SIGKILL\n";
-            exit;
-        case SIGINT:
-            doShutDownTheFire();
-            print "Caught SIGINT\n";
-            exit;
-    }
-}
 
 // Single File Application :)
 
+// ToDo: move these within a configuration file
 $logFile = "logs/app.log";
 $defaultValue = 19;
 $sharedFile = "/data/temp.txt";
+$timeLevel = 10;
+$senzors = array("dormitor-1" => "28-000006b095a7",
+		"hol-1" => "none"); // ToDo: move this under a web settings section
+$mainSenzor = 1; // ToDo: should be retrieved from the above and allow the box to configure the main one
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Helper\SidHelper;
@@ -41,16 +29,6 @@ $sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
 $sid->createNewSid("info");
 //$sid->updateSidInfo("info");
 //$sid->kill();
-/*$gpio = new GPIO();
-$id=17;
-$gpio->setup($id, "out");
-$gpio->output($id, 0);
-sleep(1);
-$gpio->output($id, 1);
-sleep(0.5);
-$gpio->output($id, 0);
-exit();
-*/
 
 while(1){
     try{
@@ -61,7 +39,7 @@ while(1){
             throw new \Exception("File does not exits");
         }
         $sb = new SmartBoxModel();
-        $current = $sb->getTempBySerial('28-00043c2d49ff');
+        $current = $sb->getTempBySerial($senzors[$mainSenzor]);
 
         //ToDo: change it to validate if pin can be initialized
         $out = shell_exec("/usr/local/bin/gpio mode 0 out");
@@ -155,8 +133,41 @@ function doNothing(){
     return ;
 }
 
+//Todo: move these
+declare(ticks = 1);
+
+pcntl_signal(SIGTERM, "signal_handler");
+pcntl_signal(SIGINT, "signal_handler");
+
+function signal_handler($signal) {
+    switch($signal) {
+        case SIGTERM:
+            print "Caught SIGTERM\n";
+            exit;
+        case SIGKILL:
+            print "Caught SIGKILL\n";
+            exit;
+        case SIGINT:
+            doShutDownTheFire();
+            print "Caught SIGINT\n";
+            exit;
+    }
+}
+
+
 
 die('exit');
+/*$gpio = new GPIO();
+$id=17;
+$gpio->setup($id, "out");
+$gpio->output($id, 0);
+sleep(1);
+$gpio->output($id, 1);
+sleep(0.5);
+$gpio->output($id, 0);
+exit();
+*/
+
 
 // ToDO: on each loop add a session_ID and log this
 // Ar trebuii sa fie ceva de genul ok, treb sa maresc temperatura cu 0.5 grade rulez pentru 30 de min sub aceeasi sesiune. Apoi las sa se odihneasca putin centrala sii ii dau o noua sesiune chiar daca nu am ajuns la temp care trebuie
