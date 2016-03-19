@@ -20,4 +20,21 @@ class SmartBoxModel
 	return $temp;
 
     }
+
+    /*
+    * Retrieves the temperature from the shared text file
+    *
+    * @return: mixed
+    */    
+    public function getDesiredTemperature()
+    {
+        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
+        if($value === FALSE)
+        {
+            $log->addError("Value could not be read");
+            throw new \Exception("File does not exits");
+        }
+
+        return $desired;
+    }
 }

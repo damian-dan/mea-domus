@@ -1,9 +1,6 @@
 #!/usr/bin/env php
 <?php
 
-
-// Single File Application :)
-
 // ToDo: move these within a configuration file
 $logFile = "logs/app.log";
 $defaultValue = 19;
@@ -32,8 +29,9 @@ $sid->createNewSid("info");
 
 while(1){
     try{
-	$desired = getDesiredTemperature();
         $sb = new SmartBoxModel();
+
+	$desired = $sb->getDesiredTemperature();
         $current = $sb->getTempBySerial($senzors[$mainSenzor]);
 
         //ToDo: change it to validate if pin can be initialized
@@ -50,19 +48,6 @@ while(1){
     sleep(1);
 }
 
-// Retrieve the desired temperature from a shared txt file. Should chane to a different storage :)
-function getDesiredTemperature()
-{
-        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
-        if($value === FALSE)
-        {
-            $log->addError("Value could not be read");
-            throw new \Exception("File does not exits");
-        }
-
-    return $desired;
-
-}
 function isLowerThan ($current, $desired)
 {
     global $sid;
@@ -89,7 +74,6 @@ function isLowerThan ($current, $desired)
         echo "t";
         doShutDownTheFire();
     }
-
 }
 
 function doStartUpTheFire()
