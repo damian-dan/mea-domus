@@ -19,7 +19,7 @@ class SmartBoxController
     public function index($request, $attributes)
     {
         $sbm = new SmartBoxModel();
-        if($response = $sbm->updateValue($attributes['parameters']))
+        if($response = $sbm->setDesiredTemperature($attributes['parameters']))
         {
             return new JsonResponse("Update Successfull", 200);    
         }
