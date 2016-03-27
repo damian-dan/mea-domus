@@ -171,11 +171,21 @@ class SidHelper
 
     public function getSessionStartTime()
     {
-	$startTime = file_get_contents($this->directory . "/sids/". $this->getCurrentSidId() . "/start");
+        $startTime = file_get_contents($this->directory . "/sids/". $this->getCurrentSidId() . "/start");
 	
 	return strtotime($startTime);
     }
-    
+
+    public function now()
+    {
+        return strtotime(date("D M j Y G:i:s"));
+    }
+
+    public function getNow()
+    {
+	return strtotime("now");
+    }
+
     
     /**
     * Returns the current Sessions number
@@ -187,5 +197,14 @@ class SidHelper
         $i = array_diff(scandir($this->directory . "/sids/", 0), array(".","..", "README.md"));
         
         return max($i);
+    }
+
+    static function getConfig()
+    {
+        include __DIR__ . "/../config.php";
+        if(!$config)
+            throw new \Exception('Config file missing');
+
+        return $config;
     }
 }

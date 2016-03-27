@@ -1,130 +1,6 @@
 #!/usr/bin/env php
 <?php
-
-// ToDo: move these within a configuration file
-$logFile = "logs/app.log";
-$defaultValue = 19;
-$sharedFile = "/data/temp.txt";
-$timeLevel = 10;
-$senzors = array("dormitor-1" => "28-000006b095a7",
-		"hol-1" => "none"); // ToDo: move this under a web settings section
-$mainSenzor = 1; // ToDo: should be retrieved from the above and allow the box to configure the main one
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-use Helper\SidHelper;
-use Helper\SmartBoxModel;
-use PhpGpio\Gpio;
-use Symfony\Component\HttpFoundation\Request; // ToDo: Use Goute or smth else that should act as a Rest Client
-
-$log = new Monolog\Logger('home');
-$log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . "/../" . $logFile, Monolog\Logger::WARNING));
-$log->addWarning('Foo bar');
-$log->addError("good");
-
-$sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
-$sid->createNewSid("info");
-//$sid->updateSidInfo("info");
-//$sid->kill();
-
-while(1){
-    try{
-        $sb = new SmartBoxModel();
-
-	$desired = $sb->getDesiredTemperature();
-        $current = $sb->getTempBySerial($senzors[$mainSenzor]);
-
-        //ToDo: change it to validate if pin can be initialized
-        $out = shell_exec("/usr/local/bin/gpio mode 0 out");
-
-        isLowerThan($current, $desired);
-    }catch (\Exception $e)
-    {
-        echo $e->getMessage();
-        $log->addError($e->getMessage());
-        exit();
-
-    }
-    sleep(1);
-}
-
-function isLowerThan ($current, $desired)
-{
-    global $sid;
-    $desired = 27;
-    echo "tmp curenta: " . $current . "\n";
-    echo "tmp ceruta: " . $desired . "\n";
-
-    $diff = $desired - $current;
-    echo "Dif: " . $diff . " \n";
-    if ($diff > 0.5)
-    {
-        echo "x";
-        doStartUpTheFire();
-    }elseif (($diff > 0.2) && ($diff < 0.5) )
-    {
-        if (($sid->getSessionStartTime() + (60*5)) < strtotime(date("D M j Y G:i:s")))
-	{
-	    //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
-	    echo "Edge case: after 5 minutes, we want to cancel the fire";
-            doShutDownTheFire();
-	}
-    }else
-    {
-        echo "t";
-        doShutDownTheFire();
-    }
-}
-
-function doStartUpTheFire()
-{
-    global $sid;
-    echo "Start-or-Resume \n";
-    $status = shell_exec("/usr/local/bin/gpio read 0");
-    echo "Status Initial:" . $status . "\n";
-    if ($status == 0){
-        $status = shell_exec("/usr/local/bin/gpio write 0 1");
-        $status = shell_exec("/usr/local/bin/gpio read 0");
-	$sid->startNewCycle();
-        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/start', 'GET');
-        //Guzzle
-        //CI rest
-        // packagsit: php rest client
-
-    }else{
-	if (($sid->getSessionStartTime() + (30*60)) < strtotime(date("D M j Y G:i:s")))
-	{
-	    // Maximum execution time has been reached
-	    //ToDo: Special Case: Log it
-	    echo "The fire is already burning for 30 minutes; give it some sleep/rest ";
-	    doShutDownTheFire();
-	    // ToDo: Config
-	    sleep(50*5);
-	}
-    }
-
-    //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
-    sleep (1);
-}
-
-function doShutDownTheFire()
-{
-    // ToDo: 1. add $sid as parameter | 2. add sleep as param | 3. Add $sid->getDetails as mixed object
-    global $sid;
-    echo "End";
-    $status = shell_exec("/usr/local/bin/gpio read 0");
-    if ($status == 1 ){
-        $gpio_off = shell_exec("/usr/local/bin/gpio write 0 0");
-	$sid->stopNewCycle();
-        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/stop', 'GET');    }
-        sleep (1);
-
-}
-
-function doNothing(){
-    return ;
-}
-
+// Major ToDo's: 1. get rid of IsLowerThan and other nasty "Helper" functions; 2. Improve Logging
 //Todo: move these
 declare(ticks = 1);
 
@@ -140,16 +16,121 @@ function signal_handler($signal) {
             print "Caught SIGKILL\n";
             exit;
         case SIGINT:
-            doShutDownTheFire();
+            doShutDownTheFire($sid);
             print "Caught SIGINT\n";
             exit;
     }
 }
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Helper\SidHelper;
+use Helper\SmartBoxModel;
+use Symfony\Component\HttpFoundation\Request; // ToDo: Use Goute or smth else that should act as a Rest Client
+
+$config = SidHelper::getConfig();
+
+$log = new Monolog\Logger('home');
+$log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . "/../" . $config['logFile'], Monolog\Logger::WARNING));
+//$log->addWarning('Foo bar');
+//$log->addError("good");
+
+$sid = new SidHelper(__DIR__ . "/../data/", basename(__FILE__, '.php').".pid");
+$sid->createNewSid("info");
+//$sid->updateSidInfo("info");
+//$sid->kill();
+$sbh = new \Helper\SmartBoxHelper();
+$sbm = new SmartBoxModel();
 
 
-die('exit');
-/*$gpio = new GPIO();
+while(1){
+    try{
+        $desired = $sbm->getDesiredTemperature();
+        $current = $sbm->getTempBySerial($config['sensors'][$config['mainSensor']]);
+
+        isLowerThan($current, $desired, $sid, $sbh);
+    }catch (\Exception $e)
+    {
+        echo $e->getMessage();
+        $log->addError($e->getMessage());
+        exit();
+
+    }
+    sleep(1);
+}
+
+function isLowerThan ($current, $desired, $sid, $sbh)
+{
+    $desired = 27;
+    $diff = $desired - $current;
+    echo "Dif: " . $diff . " \n";
+
+    if ($diff > 0.5)
+    {
+        doStartUpTheFire($sid, $sbh);
+    }elseif (($diff > 0.2) && ($diff < 0.5) )
+    {
+        if (($sid->getSessionStartTime() + (60*10)) < $sid->now())
+        {
+            // Why ? there might be situations in which this is not started. Within doShutDownFire we do not have any knowledge about the current state of the relay
+            // It would be more logically to keep logging/starting within then function still :)
+            //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
+            echo "Edge case: after 5 minutes, we want to cancel the fire";
+            doShutDownTheFire($sbh, $sid, 60*5);
+        }
+    }else
+    {
+        doShutDownTheFire($sbh, $sid);
+    }
+}
+
+function doStartUpTheFire($sid, $sbh)
+{
+
+    $status = $sbh->readRelayState();
+    echo "Status Initial:" . $status . "\n";
+    if ($status == 0){
+        $status = $sbh->write(0, 1);
+        $sid->startNewCycle();
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/start', 'GET');
+        //Guzzle
+        //CI rest
+        // packagsit: php rest client
+
+    }else{
+        if (($sid->getSessionStartTime() + (30*60)) < $sid->now())
+        {
+            // Maximum execution time has been reached
+            //ToDo: Special Case: Log it
+            echo "The fire is already burning for 30 minutes; give it some sleep/rest ";
+            doShutDownTheFire($sid, 60*5);
+        }
+    }
+
+    //$gpio_off = shell_exec("/usr/local/bin/gpio -g write 17 1");
+    sleep (1);
+}
+
+function doShutDownTheFire($sbh, $sid, $sleep=1)
+{
+    // ToDo: 1. add $sid as parameter | 2. add sleep as param | 3. Add $sid->getDetails as mixed object
+    $status = $sbh->readRelayState();
+    if ($status == 1 ){
+        $gpio_off = $sbh->write(0,1);
+        $sid->stopNewCycle();
+        file_get_contents('http://sb.imediat.eu/feed/log/sid/' . $sid->getCurrentSidId() . '/type/stop', 'GET');
+    }
+    sleep ($sleep);
+}
+
+function doNothing()
+{
+    return ;
+}
+
+/*
+ use PhpGpio\Gpio;
+$gpio = new GPIO();
 $id=17;
 $gpio->setup($id, "out");
 $gpio->output($id, 0);
