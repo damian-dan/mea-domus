@@ -2,38 +2,53 @@
 
 namespace Helper;
 
+use Monolog;
+
 class SmartBoxModel
 {
-    public function updateValue($value)
+    private $log;
+    private $config;
+
+    public function __construct()
     {
-        //TODO: Retrieve file from configuration file
-        return file_put_contents(__DIR__ . '/../data/temp.txt', $value, LOCK_EX);
+        $this->config = SidHelper::getConfig();
+
+        $this->log = new Monolog\Logger('home');
+        $this->log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . "/../" . $this->config['logFile'], Monolog\Logger::WARNING));
+
     }
 
     public function getTempBySerial($sId)
     {
         $temp = exec('cat /sys/bus/w1/devices/' . $sId . '/w1_slave |grep t=');
-	$temp = explode('t=',$temp);
-	$temp = $temp[1] / 1000;
-	$temp = round($temp,2);
+        $temp = explode('t=',$temp);
+        $temp = $temp[1] / 1000;
+        $temp = round($temp,2);
+        //ToDo: Validate
+        return $temp;
 
-	return $temp;
+    }
 
+    public function setDesiredTemperature($value)
+    {
+        return file_put_contents(__DIR__ . '/../' .$this->config['sharedFile'], $value, LOCK_EX);
     }
 
     /*
     * Retrieves the temperature from the shared text file
     *
     * @return: mixed
-    */    
+    */
     public function getDesiredTemperature()
     {
-        $desired = file_get_contents(__DIR__ . '/../' .$sharedFile);
-        if($value === FALSE)
+        $desired = file_get_contents(__DIR__ . '/../' .$this->config['sharedFile']);
+        if($desired == "")
         {
-            $log->addError("Value could not be read");
-            throw new \Exception("File does not exits");
+            $this->log->addError("Temperature value could not be read");
+            throw new \Exception("Shared temperature file does not exits");
         }
+        //ToDo: add an in range validator
+        //ToDo: move this to the Helper class SmartBoxHelper
 
         return $desired;
     }
