@@ -11,7 +11,7 @@ Smart box using RPi to control temperature and in general ... surveillance
 cd /home/pi
 ```
 ```
-git clone https://github.com/damian-dan/mea-domus.git
+git clone https://github.com/dndam/mea-domus.git
 composer install
 chmod +x /home/pi/mea-domus/bin/run
 chmod -R pi:pi /home/pi/mea-domus
