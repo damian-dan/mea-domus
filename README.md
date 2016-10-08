@@ -13,7 +13,7 @@ cd /home/pi
 ```
 git clone https://github.com/damian-dan/mea-domus.git
 composer install
-chmod +x /home/pi/mea-domus/bin/run.php
+chmod +x /home/pi/mea-domus/bin/run
 chmod -R pi:pi /home/pi/mea-domus
 chmod 777 /home/pi/mea-domus/data
 ```
