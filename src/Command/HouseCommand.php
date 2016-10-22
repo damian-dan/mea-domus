@@ -20,7 +20,7 @@ class HouseCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('home')
+            ->setName('start')
             ->setDescription('bla bla ')
             ->setHelp(<<<EOT
 Bla bla bla

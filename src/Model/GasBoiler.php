@@ -2,6 +2,7 @@
 
 namespace House\Model;
 
+use House\SidHelper;
 use Monolog;
 
 class GasBoiler extends BaseModel

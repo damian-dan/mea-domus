@@ -1,6 +1,6 @@
 <?php
 
-namespace Helper;
+namespace House;
 
 class SidHelper
 {
