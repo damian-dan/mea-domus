@@ -194,6 +194,11 @@ class SidHelper
     */
     private function getHighestSid()
     {
+        if (!file_exists($this->directory . "/sids/"))
+        {
+           mkdir ($this->directory . "/sids/", 0777, true);
+        }
+
         $i = array_diff(scandir($this->directory . "/sids/", 0), array(".","..", "README.md"));
         
         return max($i);

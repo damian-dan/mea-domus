@@ -4,6 +4,7 @@ namespace House\Command;
 
 use House\House;
 use House\Model;
+use House\HouseHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -41,7 +42,7 @@ EOT
                 $current = $boilerModel->getTempBySerial(
                     $boilerModel->getConfig()['sensors'][$boilerModel->getConfig()['mainSensor']]);
 
-                isLowerThan($current, $desired, $sid, $sbh);
+                $this->isLowerThan($current, $desired, $boilerModel, new HouseHelper());
             } catch (\Exception $e) {
                 echo $e->getMessage();
                 $boilerModel->getLog()->addError($e->getMessage());
@@ -49,6 +50,32 @@ EOT
 
             }
             sleep(1);
+        }
+    }
+
+    private function isLowerThan ($current, $desired, $sid, $sbh)
+    {
+        $diff = $desired - $current;
+
+        var_dump($diff);exit();
+        echo "Dif: " . $diff . " \n";
+
+        if ($diff > 0.5)
+        {
+            doStartUpTheFire($sid, $sbh);
+        }elseif (($diff > 0.2) && ($diff < 0.5) )
+        {
+            if (($sid->getSessionStartTime() + (60*10)) < $sid->now())
+            {
+                // Why ? there might be situations in which this is not started. Within doShutDownFire we do not have any knowledge about the current state of the relay
+                // It would be more logically to keep logging/starting within then function still :)
+                //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
+                echo "Edge case: after 5 minutes, we want to cancel the fire";
+                doShutDownTheFire($sbh, $sid, 60*5);
+            }
+        }else
+        {
+            doShutDownTheFire($sbh, $sid);
         }
     }
 }

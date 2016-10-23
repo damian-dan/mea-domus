@@ -6,13 +6,13 @@
  * Time: 12:54
  */
 
-namespace Helper;
+namespace House;
 
 
-class SmartBoxHelper
+class HouseHelper
 {
     const PATH = '/usr/local/bin/';
-    const COMMAND = PATH . 'gpio';
+    const COMMAND = self::PATH . 'gpio';
     const PWM = 'pwm';
     const RELAY_PIN = 0; // this should be configurable
     const MODE = 'mode';
