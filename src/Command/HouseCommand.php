@@ -34,6 +34,21 @@ EOT
     {
         //$house = new House();
         $boilerModel = new Model\GasBoiler();
-        echo "me";
+
+        while (1) {
+            try {
+                $desired = $boilerModel->getDesiredTemperature();
+                $current = $boilerModel->getTempBySerial(
+                    $boilerModel->getConfig()['sensors'][$boilerModel->getConfig()['mainSensor']]);
+
+                isLowerThan($current, $desired, $sid, $sbh);
+            } catch (\Exception $e) {
+                echo $e->getMessage();
+                $boilerModel->getLog()->addError($e->getMessage());
+                exit();
+
+            }
+            sleep(1);
+        }
     }
 }

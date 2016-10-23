@@ -23,10 +23,13 @@ class GasBoiler extends BaseModel
     {
         $temp = exec('cat /sys/bus/w1/devices/' . $sId . '/w1_slave |grep t=');
         $temp = explode('t=',$temp);
+
+        if (!is_numeric($temp))
+            throw new \Exception("Unable to read desired value for temperature");
+
         $temp = $temp[1] / 1000;
-        $temp = round($temp,2);
-        //ToDo: Validate
-        return $temp;
+
+        return round($temp, 2);
 
     }
 
@@ -42,7 +45,7 @@ class GasBoiler extends BaseModel
     */
     public function getDesiredTemperature()
     {
-        $desired = file_get_contents(__DIR__ . '/../' .$this->config['sharedFile']);
+        $desired = file_get_contents(__DIR__ . '/../../' . $this->config['sharedFile']);
         if($desired == "")
         {
             $this->log->addError("Temperature value could not be read");
@@ -52,5 +55,15 @@ class GasBoiler extends BaseModel
         //ToDo: move this to the Helper class SmartBoxHelper
 
         return $desired;
+    }
+
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    public function getLog()
+    {
+        return $this->log;
     }
 }
