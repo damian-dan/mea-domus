@@ -5,6 +5,7 @@ namespace House\Command;
 use House\House;
 use House\Model;
 use House\HouseHelper;
+use House\SidHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -35,6 +36,7 @@ EOT
     {
         //$house = new House();
         $boilerModel = new Model\GasBoiler();
+        $sid = new SidHelper(__DIR__ . "/../../data/", basename(__FILE__, '.php').".pid");
 
         while (1) {
             try {
@@ -42,27 +44,24 @@ EOT
                 $current = $boilerModel->getTempBySerial(
                     $boilerModel->getConfig()['sensors'][$boilerModel->getConfig()['mainSensor']]);
 
-                $this->isLowerThan($current, $desired, $boilerModel, new HouseHelper());
+                $this->isLowerThan($current, $desired, $sid, new HouseHelper(), $boilerModel);
             } catch (\Exception $e) {
                 echo $e->getMessage();
                 $boilerModel->getLog()->addError($e->getMessage());
-                exit();
-
             }
             sleep(1);
         }
     }
 
-    private function isLowerThan ($current, $desired, $sid, $sbh)
+    private function isLowerThan ($current, $desired, $sid, $sbh, $bm)
     {
         $diff = $desired - $current;
 
-        var_dump($diff);exit();
-        echo "Dif: " . $diff . " \n";
+        echo "Dif: " . $diff . " \n"; //ToDo: remove this once debug completed
 
         if ($diff > 0.5)
         {
-            doStartUpTheFire($sid, $sbh);
+            $bm->doStartUpTheFire($sid, $sbh);
         }elseif (($diff > 0.2) && ($diff < 0.5) )
         {
             if (($sid->getSessionStartTime() + (60*10)) < $sid->now())
@@ -71,11 +70,11 @@ EOT
                 // It would be more logically to keep logging/starting within then function still :)
                 //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
                 echo "Edge case: after 5 minutes, we want to cancel the fire";
-                doShutDownTheFire($sbh, $sid, 60*5);
+                $bm->doShutDownTheFire($sbh, $sid, 60*5);
             }
         }else
         {
-            doShutDownTheFire($sbh, $sid);
+            $bm->doShutDownTheFire($sbh, $sid);
         }
     }
 }
