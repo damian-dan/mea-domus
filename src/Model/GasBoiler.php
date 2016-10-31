@@ -55,7 +55,7 @@ class GasBoiler extends BaseModel
 
         return $desired;
     }
-    private function doStartUpTheFire($sid, $sbh)
+    public function doStartUpTheFire($sid, $sbh)
     {
 
         $status = $sbh->readRelayState();
@@ -82,7 +82,7 @@ class GasBoiler extends BaseModel
         sleep (1);
     }
 
-    private function doShutDownTheFire($sbh, $sid, $sleep=1)
+    public function doShutDownTheFire($sbh, $sid, $sleep=1)
     {
         // ToDo: 1. add $sid as parameter | 2. add sleep as param | 3. Add $sid->getDetails as mixed object
         $status = $sbh->readRelayState();
