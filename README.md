@@ -4,6 +4,7 @@ Smart box using RPi to control temperature and in general ... surveillance
 ## Prerequirements
 - PHP  7 (there is another repo about how to install PHP 7 on an ARM architecture)
 - composer
+- /usr/local/bin/gpio
  
 ## Installation steps
 
