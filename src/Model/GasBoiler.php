@@ -2,7 +2,8 @@
 
 namespace House\Model;
 
-use House\SidHelper;
+use House\Helper\SidHelper;
+use House\Helper\Config;
 use Monolog;
 
 class GasBoiler extends BaseModel
@@ -12,11 +13,11 @@ class GasBoiler extends BaseModel
 
     public function __construct()
     {
-        $this->config = SidHelper::getConfig();
-
+	// ToDo: Change this to a cleaner way; at this point was left out just co have config working
+	$this->config = Config::getAll();
+    
         $this->log = new Monolog\Logger('home');
         $this->log->pushHandler(new Monolog\Handler\StreamHandler(__DIR__ . "/../" . $this->config['logFile'], Monolog\Logger::WARNING));
-
     }
 
     public function getTempBySerial($sId)
@@ -55,10 +56,10 @@ class GasBoiler extends BaseModel
 
         return $desired;
     }
-    public function doStartUpTheFire($sid, $sbh)
+    public function doStartUpTheFire($sid, $gpio)
     {
 
-        $status = $sbh->readRelayState();
+echo($gpio->getGpioState(0));exit();
         echo "Status Initial:" . $status . "\n";
         if ($status == 0){
             $status = $sbh->write(0, 1);

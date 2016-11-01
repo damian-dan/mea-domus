@@ -4,6 +4,10 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use House\Console\Application;
+use House\Helper\Config;
+
+// ToDo: Should be replaced with a bootstrap
+Config::setup();
 
 $app = new Application();
 $app->run();

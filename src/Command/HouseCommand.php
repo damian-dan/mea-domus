@@ -4,8 +4,8 @@ namespace House\Command;
 
 use House\House;
 use House\Model;
-use House\HouseHelper;
-use House\SidHelper;
+use House\Helper\GPIOHelper;
+use House\Helper\SidHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -44,7 +44,7 @@ EOT
                 $current = $boilerModel->getTempBySerial(
                     $boilerModel->getConfig()['sensors'][$boilerModel->getConfig()['mainSensor']]);
 
-                $this->isLowerThan($current, $desired, $sid, new HouseHelper(), $boilerModel);
+                $this->isLowerThan($desired-$current, $boilerModel);
             } catch (\Exception $e) {
                 echo $e->getMessage();
                 $boilerModel->getLog()->addError($e->getMessage());
@@ -53,9 +53,10 @@ EOT
         }
     }
 
-    private function isLowerThan ($current, $desired, $sid, $sbh, $bm)
+    private function isLowerThan ($diff, $bm)
     {
-        $diff = $desired - $current;
+	$sbh = new GPIOHelper();
+	$sid = new SidHelper(__DIR__ . "/../../data/", basename(__FILE__, '.php').".pid");
 
         echo "Dif: " . $diff . " \n"; //ToDo: remove this once debug completed
 
@@ -78,3 +79,4 @@ EOT
         }
     }
 }
+

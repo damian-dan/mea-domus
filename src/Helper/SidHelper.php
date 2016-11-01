@@ -1,6 +1,6 @@
 <?php
 
-namespace House;
+namespace House\Helper;
 
 class SidHelper
 {
@@ -195,21 +195,14 @@ class SidHelper
      */
     private function getHighestSid()
     {
+	// Check if Sessions folder exists
         if (!file_exists($this->directory . "/sids/")) {
             mkdir($this->directory . "/sids/", 0777, true);
         }
 
-        $i = array_diff(scandir($this->directory . "/sids/", 0), array(".", "..", "README.md"));
+	$b = scandir($this->directory . "/sids/");
+	sort($b, SORT_NUMERIC);
 
-        return max($i);
-    }
-
-    static function getConfig()
-    {
-        include __DIR__ . "/../config.php";
-        if (!$config)
-            throw new \Exception('Config file missing');
-
-        return $config;
+	return end($b);
     }
 }
