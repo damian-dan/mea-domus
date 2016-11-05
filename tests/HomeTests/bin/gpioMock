@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+array_shift($argv);
+
+if (count($argv) < 2) {
+    throw new Exception('Expected at least 2 arguments');
+}
+
+$direction = $argv[0];
+$pin = $argv[1];
+$data = $argv[2] ?? null;
+
+if ($direction === 'read' && $data) {
+    throw new Exception('READ MODE should not have more than 2 arguments');
+}
+
+if ($direction === 'read') {
+    echo '1';
+    exit(0);
+}
+
+if ($direction === 'write') {
+    echo $data;
+    exit(0);
+}
+
+if ($direction === 'mode') {
+    echo $data;
+    exit(0);
+}

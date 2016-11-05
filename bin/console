@@ -4,10 +4,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use House\Console\Application;
-use House\Helper\Config;
-
-// ToDo: Should be replaced with a bootstrap
-Config::setup();
 
 $app = new Application();
+$house = new \House\House($app, __DIR__.'/../domus.yml');
 $app->run();
