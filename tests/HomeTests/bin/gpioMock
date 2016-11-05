@@ -16,7 +16,7 @@ if ($direction === 'read' && $data) {
 }
 
 if ($direction === 'read') {
-    echo '1';
+    echo 'OK';
     exit(0);
 }
 
