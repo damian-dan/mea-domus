@@ -3,9 +3,13 @@
 namespace House\Command;
 
 use House\House;
-use House\Model;
+use House\Model\Boiler;
+use House\Model\GasBoiler;
 use House\Helper\GPIOHelper;
 use House\Helper\SidHelper;
+use House\Model\Gpio;
+use House\Service\BoilerService;
+use House\Service\SessionService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,8 +21,23 @@ use Symfony\Component\Console\Helper\ProgressHelper;
  * Class HouseCommand
  * @package House\Command
  */
-class HouseCommand extends Command
+class HouseCommand extends LoopCommand
 {
+    /**
+     * @var BoilerService
+     */
+    protected $boilerService;
+
+    /**
+     * @var Gpio
+     */
+    protected $boilerRelay;
+
+    /**
+     * @var Boiler
+     */
+    protected $boiler;
+
     protected function configure()
     {
         $this
@@ -32,51 +51,29 @@ EOT
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    /**
+     * Get needed services
+     */
+    public function setup()
     {
-        //$house = new House();
-        $boilerModel = new Model\GasBoiler();
-        $sid = new SidHelper(__DIR__ . "/../../data/", basename(__FILE__, '.php').".pid");
-
-        while (1) {
-            try {
-                $desired = $boilerModel->getDesiredTemperature();
-                $current = $boilerModel->getTempBySerial(
-                    $boilerModel->getConfig()['sensors'][$boilerModel->getConfig()['mainSensor']]);
-
-                $this->isLowerThan($desired-$current, $boilerModel);
-            } catch (\Exception $e) {
-                echo $e->getMessage();
-                $boilerModel->getLog()->addError($e->getMessage());
-            }
-            sleep(1);
-        }
+        $this->boilerService = $this->getHouse()->boilerService();
+        $this->boiler = new Boiler($this->getHouse()->config()->get('sensors')[$this->getHouse()->config()->get('mainSensor')]);
+        $this->boilerRelay = new Gpio($this->getHouse()->config()->get('relay_pin'));
     }
 
-    private function isLowerThan ($diff, $bm)
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    public function tick(InputInterface $input, OutputInterface $output)
     {
-	$sbh = new GPIOHelper();
-	$sid = new SidHelper(__DIR__ . "/../../data/", basename(__FILE__, '.php').".pid");
+        try {
 
-        echo "Dif: " . $diff . " \n"; //ToDo: remove this once debug completed
+            $this->boilerService->monitorBoiler($this->boiler, $this->boilerRelay);
 
-        if ($diff > 0.5)
-        {
-            $bm->doStartUpTheFire($sid, $sbh);
-        }elseif (($diff > 0.2) && ($diff < 0.5) )
-        {
-            if (($sid->getSessionStartTime() + (60*10)) < $sid->now())
-            {
-                // Why ? there might be situations in which this is not started. Within doShutDownFire we do not have any knowledge about the current state of the relay
-                // It would be more logically to keep logging/starting within then function still :)
-                //ToDo: Log this case as well: we started the fire, but after 5 minutes we drop it
-                echo "Edge case: after 5 minutes, we want to cancel the fire";
-                $bm->doShutDownTheFire($sbh, $sid, 60*5);
-            }
-        }else
-        {
-            $bm->doShutDownTheFire($sbh, $sid);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            $this->getHouse()->logger()->critical($e->getMessage());
         }
     }
 }
-

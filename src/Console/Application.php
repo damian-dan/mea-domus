@@ -1,8 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace House\Console;
 
 use House\Command\HouseCommand;
+use House\Command\SignalCommand;
+use House\House;
 use Symfony\Component\Console\Application as BaseApplication;
 
 /**
@@ -12,26 +15,61 @@ class Application extends BaseApplication
 {
     const VERSION = '1.0';
 
-    private static $help = '
- ';
+    private static $logo = <<<LOGO
+      (
+      )
+   ___I_
+  /\-_--\
+ /  \_-__\
+ |[]| [] |
 
+LOGO;
+
+    /**
+     * @var House
+     */
+    protected $house;
+
+    /**
+     * Application constructor.
+     */
     public function __construct()
     {
-        parent::__construct('House', Application::VERSION);
+        parent::__construct('Mea Domus', Application::VERSION);
     }
 
-    public function getHelp()
+    /**
+     * @return string
+     */
+    public function getHelp() : string
     {
-        return self::$help . parent::getHelp();
+        return self::$logo . parent::getHelp();
+    }
+
+    /**
+     * @param House $house
+     */
+    public function setHouse(House $house)
+    {
+        $this->house = $house;
+    }
+
+    /**
+     * @return House
+     */
+    public function getHouse() : House
+    {
+        return $this->house;
     }
 
     /**
      * Initializes all the composer commands
      */
-    protected function getDefaultCommands()
+    protected function getDefaultCommands() : array
     {
-        $commands = parent::getDefaultCommands();
-        $commands[] = new HouseCommand();
-        return $commands;
+        return array_merge(parent::getDefaultCommands(), [
+            new HouseCommand(),
+            new SignalCommand(),
+        ]);
     }
 }

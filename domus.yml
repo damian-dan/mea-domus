@@ -1,0 +1,20 @@
+gpio_binary: /usr/local/bin/gpio
+temperature_file: data/temp.txt
+central_aggregator: http://sb.imediat.eu/feed/log/sid/
+boiler_temp_read_command: cat /sys/bus/w1/devices/%s/w1_slave |grep t=
+session_dir: data
+relay_pin: 0
+sensors:
+  dormitor-1: 28-000006b095a7
+  hol: ~
+mainSensor: dormitor-1
+
+
+data_dir: data
+logFile: logs/app.log
+sharedFile: data/temp.txt
+relayPinNumber: 0
+sensors:
+  dormitor-1: 28-000006b095a7
+  hol: ~
+mainSensor: dormitor-1
