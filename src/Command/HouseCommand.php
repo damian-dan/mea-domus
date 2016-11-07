@@ -41,11 +41,11 @@ class HouseCommand extends LoopCommand
     protected function configure()
     {
         $this
-            ->setName('start')
-            ->setDescription('bla bla ')
+            ->setName('boiler')
+            ->setDescription('Starts the boiler litener ')
             ->setHelp(<<<EOT
-Bla bla bla
-<info>php bin/console execute</info>
+Boiler is actively monitoring the temperature changes and takes action in case of (configurable) threshold
+<info>php bin/console boiler</info>
 EOT
             )
         ;
