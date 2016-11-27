@@ -1,8 +1,8 @@
 # mea-domus
-Smart box using RPi to control temperature and in general ... surveillance
+Smart box using RPi to control temperature and in general ... surveillancek
 # Setup
 ## Prerequirements
-- PHP  7 (there is another repo about how to install PHP 7 on an ARM architecture)
+- PHP  7
 - composer
 - /usr/local/bin/gpio
  
@@ -30,5 +30,5 @@ We have two scripts:
 # ToDo
 1. retrieve CPU and GPU temperature, with a trigger for more than 50o C
 2. Introduce http2 features
-
+3. Add an event/subscriber approach, in which I should be able to start my washing machine
 
