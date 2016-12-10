@@ -10,6 +10,7 @@ use House\Service\ExecutorService;
 use House\Service\GpioService;
 use House\Service\SessionService;
 use House\Util\ErrorHandler;
+use House\Model\Gpio;
 use Monolog\Handler\StreamHandler;
 use House\Console\Application;
 use Evenement\EventEmitter;
@@ -226,6 +227,7 @@ class House
     public function shutdown()
     {
         $this->logger()->debug('Shutting down...bye');
+        $this->gpioService->write(new Gpio($this->config()->get('relay_pin')), 0);
         die();
     }
 
