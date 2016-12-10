@@ -162,6 +162,7 @@ class House
     {
         if (!$this->config) {
             $this->config = new Config($this->configurationFile);
+			$this->config->set("project_root", realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR);
         }
         return $this->config;
     }
@@ -195,7 +196,7 @@ class House
     {
         if (!$this->boilerService) {
             $this->boilerService = new BoilerService(
-                $this->config()->get('temperature_file'),
+                $this->config()->get('project_root') . $this->config()->get('temperature_file'),
                 $this->emitter(),
                 $this->executor(),
                 $this->gpioService(),
