@@ -32,6 +32,7 @@ We have two scripts:
 2. Introduce http2 features
 3. Add an event/subscriber approach, in which I should be able to start my washing machine
 4. websocket tu update relay state
+5. Add installer.sh
 
 # Mobile app
 - list of locations (e.g. Bals, Craiova)
