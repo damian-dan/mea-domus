@@ -9,6 +9,9 @@ namespace House\Model;
  */
 class Gpio
 {
+    const OUT	= 'OUT';
+    const IN	= 'IN';
+    const PWM	= 'PWM';
     const READ  = 'READ';
     const WRITE = 'WRITE';
 

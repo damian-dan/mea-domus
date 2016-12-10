@@ -59,6 +59,8 @@ EOT
         $this->boilerService = $this->getHouse()->boilerService();
         $this->boiler = new Boiler($this->getHouse()->config()->get('sensors')[$this->getHouse()->config()->get('mainSensor')]);
         $this->boilerRelay = new Gpio($this->getHouse()->config()->get('relay_pin'));
+	//ToDo: Initialize all pins upon startup into GpioService
+	$this->getHouse()->gpioService()->mode($this->boilerRelay, Gpio::OUT);
     }
 
     /**
