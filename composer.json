@@ -17,7 +17,8 @@
     "evenement/evenement": "2.0.*",
     "dflydev/dot-access-data": "v1.0.1",
     "guzzlehttp/guzzle": "^6.2",
-    "slim/slim": "^3.1"
+    "slim/slim": "^3.1",
+    "symfony/finder": "^3.2"
   },
   "require-dev": {
     "phpunit/phpunit": "@stable",

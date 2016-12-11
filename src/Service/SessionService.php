@@ -5,6 +5,8 @@ namespace House\Service;
 
 use Evenement\EventEmitter;
 use House\Model\Session;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Process\Process;
 
 /**
  * Class SessionService
@@ -41,7 +43,19 @@ class SessionService
      */
     public function current() : Session
     {
-        $pid = getmypid();
+        $nextSessionId = $this->generateSessionId();
+        $pid = $nextSessionId;
+        $possiblyTheCurrentSession = $nextSessionId;
+        if ($nextSessionId > 1) {
+            $possiblyTheCurrentSession -= 1;
+        }
+
+        $pathToCurrentSessionDir = sprintf('%s/%s/stop', $this->sessionDir, $possiblyTheCurrentSession);
+
+        if (!file_exists($pathToCurrentSessionDir)) { //the last session on disk is still open
+            $pid = $possiblyTheCurrentSession;
+        }
+
         return new Session($pid, $this->sessionDir);
     }
 
@@ -51,7 +65,7 @@ class SessionService
      */
     public function start(Session $session = null) : Session
     {
-        $session = $session ?? new Session(getmypid(), $this->sessionDir);
+        $session = $session ?? new Session($this->generateSessionId(), $this->sessionDir);
 
         $session->open();
 
@@ -71,5 +85,42 @@ class SessionService
         $this->emitter->emit('session.ended', [$session]);
 
         return $session;
+    }
+
+    /**
+     * @param int $sessionId
+     */
+    public function remove(int $sessionId)
+    {
+        rmdir(sprintf($this->sessionDir . DIRECTORY_SEPARATOR . (int) $sessionId));
+    }
+
+    /**
+     * Gets the latest session ID from the directories
+     * within the session directory, increments it by one
+     * and returns the value
+     *
+     * @return int
+     */
+    protected function generateSessionId() : int
+    {
+        $finder = new Finder();
+        $finder
+            ->directories() //only directories
+            ->in($this->sessionDir) //only in session directory
+            ->depth('== 0') //don't search recursively
+            ->filter(function(\SplFileInfo $dir) { //filter only directories that have only digits in their name
+                return preg_match('/^\d+$/', $dir->getBasename());
+            })
+            ->sort(function(\SplFileInfo $a, \SplFileInfo $b) { //sort desc by name
+                return $b <=> $a;
+            });
+
+        // take the first from the list, increment it by one and return it
+        foreach ($finder as $lastSessionDir) {
+            return 1 + (int) $lastSessionDir->getBasename();
+        }
+
+        return 1;
     }
 }

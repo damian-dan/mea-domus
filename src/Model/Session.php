@@ -36,11 +36,8 @@ class Session
      */
     public function __construct($id, string $sessionDirectory)
     {
+        $this->id = $id;
         $this->sessionDirectory = sprintf('%s/%s', rtrim($sessionDirectory, '/'), $id);
-
-        if (!realpath($this->sessionDirectory) && !@mkdir($this->sessionDirectory, 0777, true)) {
-            throw new \RuntimeException(sprintf('Session directory could not be created at %s', $this->sessionDirectory));
-        }
     }
 
     /**
@@ -61,9 +58,13 @@ class Session
             throw new \RuntimeException('Session already started');
         }
 
+        if (!realpath($this->sessionDirectory) && !@mkdir($this->sessionDirectory, 0777, true)) {
+            throw new \RuntimeException(sprintf('Session directory could not be created at %s', $this->sessionDirectory));
+        }
+
         $sessionStartFile = sprintf('%s/start', $this->sessionDirectory);
 
-        if (!@file_put_contents($sessionStartFile, date("D M j Y G:i:s"))) {
+        if (!file_put_contents($sessionStartFile, date("D M j Y G:i:s"))) {
             throw new \RuntimeException(sprintf('Session could not be started at %s', $sessionStartFile));
         }
 
@@ -80,9 +81,9 @@ class Session
             throw new \RuntimeException('Session already stopped');
         }
 
-        $sessionStartFile = sprintf('%s/start', $this->sessionDirectory);
+        $sessionStartFile = sprintf('%s/stop', $this->sessionDirectory);
 
-        if (!@file_put_contents($sessionStartFile, date("D M j Y G:i:s"))) {
+        if (!file_put_contents($sessionStartFile, date("D M j Y G:i:s"))) {
             throw new \RuntimeException(sprintf('Session could not be started at %s', $sessionStartFile));
         }
 

@@ -4,9 +4,7 @@ namespace House\Command;
 
 use House\House;
 use House\Model\Boiler;
-use House\Model\GasBoiler;
-use House\Helper\GPIOHelper;
-use House\Helper\SidHelper;
+use House\Model\GasBoiler;;
 use House\Model\Gpio;
 use House\Service\BoilerService;
 use House\Service\SessionService;
@@ -42,7 +40,7 @@ class HouseCommand extends LoopCommand
     {
         $this
             ->setName('boiler')
-            ->setDescription('Starts the boiler litener ')
+            ->setDescription('Starts the boiler listener ')
             ->setHelp(<<<EOT
 Boiler is actively monitoring the temperature changes and takes action in case of (configurable) threshold
 <info>php bin/console boiler</info>
@@ -59,13 +57,14 @@ EOT
         $this->boilerService = $this->getHouse()->boilerService();
         $this->boiler = new Boiler($this->getHouse()->config()->get('sensors')[$this->getHouse()->config()->get('mainSensor')]);
         $this->boilerRelay = new Gpio($this->getHouse()->config()->get('relay_pin'));
-	//ToDo: Initialize all pins upon startup into GpioService
-	$this->getHouse()->gpioService()->mode($this->boilerRelay, Gpio::OUT);
+	    //ToDo: Initialize all pins upon startup into GpioService
+	    $this->getHouse()->gpioService()->mode($this->boilerRelay, Gpio::OUT);
     }
 
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     * @return int|void
      */
     public function tick(InputInterface $input, OutputInterface $output)
     {

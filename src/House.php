@@ -185,7 +185,10 @@ class House
     public function session() : SessionService
     {
         if (!$this->session) {
-            $this->session = new SessionService($this->emitter(), $this->config()->get('session_dir'));
+            $this->session = new SessionService(
+                $this->emitter(),
+                $this->config->get('project_root') . $this->config()->get('session_dir')
+            );
         }
         return $this->session;
     }
@@ -228,7 +231,15 @@ class House
     {
         $this->logger()->debug('Shutting down...bye');
         $this->gpioService->write(new Gpio($this->config()->get('relay_pin')), 0);
-        die();
+
+        /**
+         * Close current session if it's opened
+         */
+        $currentSession = $this->session()->current();
+        if ($currentSession->isOpened()) {
+            $this->session()->close($currentSession);
+        }
+        die;
     }
 
     /**
