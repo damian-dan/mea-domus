@@ -198,11 +198,7 @@ class BoilerService
                 $this->sessionService->start($session);
             }
 
-            $endpoint = sprintf('%s/%s/type/start', $this->centralAgreggator, $session->getId());
-            $this->client->get($endpoint); //notify central aggregator of change
-            $this->logger->debug(sprintf('Central aggregator notified of event'));
-
-            $this->emitter->emit('relay.on', [$gpio, $session]);
+            $this->emitter->emit('relay', [$gpio, $session, "on"]);
         }
     }
 
@@ -213,17 +209,18 @@ class BoilerService
     {
         $relayStatus = $this->gpioService->read($gpio);
         if ($relayStatus == 1) {
-            $this->gpioService->write($gpio, 1); //turn OFF relay
+            $this->gpioService->write($gpio, 0); //turn OFF relay
             $this->logger->debug(sprintf('GPIO %s turned OFF', $gpio->getPin()));
 
             $session = $this->sessionService->current();
             $session->close();
 
-            $endpoint = sprintf('%s/%s/type/stop', $this->centralAgreggator, $session->getId());
-            $this->client->get($endpoint); //notify central aggregator of change
-            $this->logger->debug(sprintf('Central aggregator notified of event'));
+//            $endpoint = sprintf('%s/%s/type/stop', $this->centralAgreggator, $session->getId());
+//            $this->client->get($endpoint); //notify central aggregator of change
+//            $this->logger->debug(sprintf('Central aggregator notified of event'));
 
-            $this->emitter->emit('relay.off', [$gpio, $session]);
+
+            $this->emitter->emit('relay', [$gpio, $session, "off"]);
         }
     }
 
@@ -241,10 +238,11 @@ class BoilerService
 
         if ($tempDiff > 0.5)
         {
+            echo 1;
             $this->turnOn($boilerRelay);
 
         } elseif (($tempDiff > 0.2) && ($tempDiff < 0.5)) {
-
+            echo 2;
             $session = $this->sessionService->current();
             $sessionStartTime = $session->startTime();
             if ($sessionStartTime) {
@@ -255,9 +253,11 @@ class BoilerService
             }
 
         } else {
+            echo 3;
             $this->turnOff($boilerRelay);
         }
     }
+
 
     /**
      * @param Boiler $boiler

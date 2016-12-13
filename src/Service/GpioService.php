@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 namespace House\Service;
 
+use Evenement\EventEmitter;
+use GuzzleHttp\Client;
 use House\Exception\GpioDirectionException;
+use House\House;
 use House\Model\Gpio;
 use House\Model\ReadOnlyGpio;
 use House\Model\WriteOnlyGpio;
@@ -24,6 +27,11 @@ class GpioService
     protected $executor;
 
     /**
+     * @var EventEmitter
+     */
+    protected $emitter;
+
+    /**
      * @var string
      */
     protected $binaryPath;
@@ -32,9 +40,10 @@ class GpioService
      * GpioService constructor.
      * @param string $binaryPath
      */
-    public function __construct(string $binaryPath)
+    public function __construct(EventEmitter $emiter, string $binaryPath)
     {
         $this->binaryPath = $binaryPath;
+        $this->emitter = $emiter;
     }
 
     /**
@@ -79,6 +88,30 @@ class GpioService
         $cmd = $this->buildCommand($gpio->getPin(), self::MODE, $mode);
 
         return $this->getExecutor()->execute($cmd);
+    }
+
+    /**
+     * @param House $house
+     * @param $gpio
+     * @param $session
+     * @param $state
+     */
+    public function relayOnOff(House $house, $gpio, $session, $state)
+    {
+        $client = new Client();
+        if($state == "on"){
+            echo "State ON \n";
+            $endpoint = sprintf('%s/%s/type/start', $house->config()->get('central_aggregator'), $session->getId());
+            $client->get($endpoint); //notify central aggregator of change
+            $house->logger()->debug(sprintf('Central aggregator notified of event'));
+        }
+        else if($state == "off"){
+            echo "State OFF \n";
+            $endpoint = sprintf('%s/%s/type/stop', $house->config()->get('central_aggregator'), $session->getId());
+            $client->get($endpoint); //notify central aggregator of change
+            $house->logger()->debug(sprintf('Central aggregator notified of event'));
+        }
+
     }
 
     /**

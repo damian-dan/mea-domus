@@ -131,6 +131,7 @@ class House
         $this->application->setHouse($this);
         $this->attachSignalListeners();
         $this->attachShutdownListeners();
+        $this->attachListeners();
     }
 
     /**
@@ -163,7 +164,7 @@ class House
     {
         if (!$this->config) {
             $this->config = new Config($this->configurationFile);
-			$this->config->set("project_root", realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR);
+			      $this->config->set("project_root", realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR);
         }
         return $this->config;
     }
@@ -219,7 +220,10 @@ class House
     public function gpioService() : GpioService
     {
         if (!$this->gpioService) {
-            $this->gpioService = new GpioService($this->config()->get('gpio_binary'));
+            $this->gpioService = new GpioService(
+                $this->emitter(),
+                $this->config()->get('gpio_binary')
+            );
         }
         return $this->gpioService;
     }
@@ -283,5 +287,12 @@ class House
                 $this->shutdown();
             });
         }
+    }
+
+    protected function attachListeners()
+    {
+        $this->emitter()->on('relay', function($gpio, $session, $state)  {
+            $this->gpioService()->relayOnOff($this, $gpio, $session, $state);
+        });
     }
 }
