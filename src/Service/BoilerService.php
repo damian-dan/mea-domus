@@ -215,11 +215,6 @@ class BoilerService
             $session = $this->sessionService->current();
             $session->close();
 
-//            $endpoint = sprintf('%s/%s/type/stop', $this->centralAgreggator, $session->getId());
-//            $this->client->get($endpoint); //notify central aggregator of change
-//            $this->logger->debug(sprintf('Central aggregator notified of event'));
-
-
             $this->emitter->emit('relay', [$gpio, $session, "off"]);
         }
     }
@@ -233,27 +228,30 @@ class BoilerService
         $desired = $this->getDesiredTemperature();
         $current = $this->getTemperature($boiler);
         $tempDiff = $desired - $current;
+        $session = $this->sessionService->current();
 
         $this->logger->debug(sprintf('Desired = %s, Current = %s, Difference = %s', $desired, $current, $tempDiff));
-
+		
         if ($tempDiff > 0.5)
         {
             echo 1;
+			      $session->payload = $this->preparePayload($desired, $current);
             $this->turnOn($boilerRelay);
 
         } elseif (($tempDiff > 0.2) && ($tempDiff < 0.5)) {
             echo 2;
-            $session = $this->sessionService->current();
             $sessionStartTime = $session->startTime();
             if ($sessionStartTime) {
                 $timeDifference = $sessionStartTime->diff(new \DateTime());
                 if ($timeDifference->i >= 10) { //10 minutes or more have passed
+					          $session->payload = $this->preparePayload($desired, $current);
                     $this->turnOff($boilerRelay);
                 }
             }
 
         } else {
             echo 3;
+			$session->payload = $this->preparePayload($desired, $current);
             $this->turnOff($boilerRelay);
         }
     }
@@ -267,4 +265,12 @@ class BoilerService
     {
         return sprintf($this->commandTemplate, $boiler->getId());
     }
+
+    /**
+     */
+    protected function preparePayload(float $desired, float $current) : string
+    {
+        return json_encode([$desired, $current]);
+    }
+	
 }
