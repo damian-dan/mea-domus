@@ -30,6 +30,11 @@ class Session
     protected $stopTime;
 
     /**
+     * @var string
+     */
+    public $payload;
+
+    /**
      * Session constructor.
      * @param string|int $id
      * @param string $sessionDirectory

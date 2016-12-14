@@ -229,13 +229,13 @@ class BoilerService
         $current = $this->getTemperature($boiler);
         $tempDiff = $desired - $current;
         $session = $this->sessionService->current();
+        $session->payload = $this->preparePayload($desired, $current);
 
         $this->logger->debug(sprintf('Desired = %s, Current = %s, Difference = %s', $desired, $current, $tempDiff));
 		
         if ($tempDiff > 0.5)
         {
             echo 1;
-			      $session->payload = $this->preparePayload($desired, $current);
             $this->turnOn($boilerRelay);
 
         } elseif (($tempDiff > 0.2) && ($tempDiff < 0.5)) {
@@ -244,14 +244,12 @@ class BoilerService
             if ($sessionStartTime) {
                 $timeDifference = $sessionStartTime->diff(new \DateTime());
                 if ($timeDifference->i >= 10) { //10 minutes or more have passed
-					          $session->payload = $this->preparePayload($desired, $current);
                     $this->turnOff($boilerRelay);
                 }
             }
 
         } else {
             echo 3;
-			$session->payload = $this->preparePayload($desired, $current);
             $this->turnOff($boilerRelay);
         }
     }
