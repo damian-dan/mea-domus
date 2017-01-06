@@ -74,7 +74,7 @@ EOT
             $this->boilerService->monitorBoiler($this->boiler, $this->boilerRelay);
 
         } catch (\Exception $e) {
-            echo $e->getMessage();
+            echo $e->getMessage().PHP_EOL;
             $this->getHouse()->logger()->critical($e->getMessage());
         }
     }

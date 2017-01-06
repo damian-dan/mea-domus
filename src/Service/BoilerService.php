@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use House\Exception\BoilerReadException;
 use House\Model\Boiler;
 use House\Model\Gpio;
+use House\Model\Session;
 use Monolog\Logger;
 
 /**
@@ -225,22 +226,24 @@ class BoilerService
      */
     public function monitorBoiler(Boiler $boiler, Gpio $boilerRelay)
     {
+        $session = $this->sessionService->current();
+        $prevSessionId = (int) $session->getId() - 1;
+        $prevSession = $prevSessionId ? $this->sessionService->getSessionById($prevSessionId) : null;
+
+        if (!$this->enoughTimeHasPassed($prevSession)) {
+            return; //bail early as is too early to do something
+        }
+
         $desired = $this->getDesiredTemperature();
         $current = $this->getTemperature($boiler);
         $tempDiff = $desired - $current;
-        $session = $this->sessionService->current();
-        $prevSession = $this->sessionService->getSessionById($session->getId()-1);
+
         $session->payload = $this->preparePayload($desired, $current);
         $sessionStartTime = $session->startTime();
-        $now = new \DateTime();
 
         $this->logger->debug(sprintf('Desired = %s, Current = %s, Difference = %s', $desired, $current, $tempDiff));
 
-        if (($tempDiff > 0.5) &&
-            ( ($prevSession->closeTime()->getTimestamp() *5*60 ) // Checks that previous session ended 5 minutes ago
-                < $now->getTimestamp())
-            )
-        {
+        if ($tempDiff > 0.5) {
             echo 1;
             $this->turnOn($boilerRelay);
 
@@ -262,6 +265,38 @@ class BoilerService
         }
     }
 
+    /**
+     * @param Session|null $previousSession
+     * @param \DateTime|null $now
+     * @return bool
+     */
+    public function enoughTimeHasPassed(Session $previousSession = null, \DateTime $now = null)
+    {
+        if (!$previousSession) {
+            // When we run the application for the
+            // first time and there's no other sessions on disk
+            return true;
+        }
+
+        if (!$now) {
+            $now = new \DateTime();
+        }
+
+        $minutesPassed = $this->getTotalMinutes($now->diff($previousSession->closeTime()));
+
+        $limit = 5; //minutes
+
+        return $minutesPassed >= $limit;
+    }
+
+    /**
+     * @param \DateInterval $int
+     * @return int
+     */
+    protected function getTotalMinutes(\DateInterval $int) : int
+    {
+        return (int) ($int->d * 24 * 60) + ($int->h * 60) + $int->i;
+    }
 
     /**
      * @param Boiler $boiler
