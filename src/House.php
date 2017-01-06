@@ -207,6 +207,7 @@ class House
                 $this->gpioService(),
                 $this->session(),
                 $this->logger(),
+                (int) $this->config()->get('boiler_rest_time'),
                 $this->config()->get('central_aggregator'),
                 $this->config()->get('boiler_temp_read_command')
             );

@@ -48,6 +48,11 @@ class BoilerService
     protected $logger;
 
     /**
+     * @var int
+     */
+    protected $restTime;
+
+    /**
      * @var string
      */
     protected $temperatureFile;
@@ -65,6 +70,7 @@ class BoilerService
      * @param GpioService $gpioService
      * @param SessionService $sessionService
      * @param Logger $logger
+     * @param int $restTime
      * @param string $centralAggregator
      * @param string $commandTemplate
      */
@@ -75,6 +81,7 @@ class BoilerService
         GpioService $gpioService,
         SessionService $sessionService,
         Logger $logger,
+        int $restTime = 5,
         string $centralAggregator = 'http://sb.imediat.eu/feed/log/sid/',
         string $commandTemplate = 'cat /sys/bus/w1/devices/%s/w1_slave |grep t='
     ) {
@@ -84,6 +91,7 @@ class BoilerService
         $this->gpioService = $gpioService;
         $this->sessionService = $sessionService;
         $this->logger = $logger;
+        $this->restTime = $restTime;
         $this->centralAgreggator = rtrim($centralAggregator, '/');
         $this->commandTemplate = $commandTemplate;
         $this->setTemperatureFile($temperatureFile);
@@ -284,9 +292,7 @@ class BoilerService
 
         $minutesPassed = $this->getTotalMinutes($now->diff($previousSession->closeTime()));
 
-        $limit = 5; //minutes
-
-        return $minutesPassed >= $limit;
+        return $minutesPassed >= $this->restTime;
     }
 
     /**

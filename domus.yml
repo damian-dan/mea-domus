@@ -8,6 +8,7 @@ sensors:
   dormitor-1: 28-000006b095a7
   hol: ~
 mainSensor: dormitor-1
+boiler_rest_time: 5 # minutes
 
 
 data_dir: data
