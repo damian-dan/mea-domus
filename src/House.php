@@ -208,8 +208,8 @@ class House
                 $this->session(),
                 $this->logger(),
                 (int) $this->config()->get('boiler_rest_time'),
-                $this->config()->get('central_aggregator'),
-                $this->config()->get('boiler_temp_read_command')
+                (string) $this->config()->get('central_aggregator'),
+                (string) $this->config()->get('boiler_temp_read_command')
             );
         }
         return $this->boilerService;
@@ -223,7 +223,7 @@ class House
         if (!$this->gpioService) {
             $this->gpioService = new GpioService(
                 $this->emitter(),
-                $this->config()->get('gpio_binary')
+                (string) $this->config()->get('gpio_binary')
             );
         }
         return $this->gpioService;
@@ -235,7 +235,7 @@ class House
     public function shutdown()
     {
         $this->logger()->debug('Shutting down...bye');
-        $this->gpioService->write(new Gpio($this->config()->get('relay_pin')), 0);
+        $this->gpioService->write(new Gpio((int) $this->config()->get('relay_pin')), 0);
 
         /**
          * Close current session if it's opened

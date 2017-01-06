@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace House\Console;
 
-use House\Command\HouseCommand;
+use House\Command\BoilerCommand;
 use House\Command\SignalCommand;
 use House\House;
 use Symfony\Component\Console\Application as BaseApplication;
@@ -68,7 +68,7 @@ LOGO;
     protected function getDefaultCommands() : array
     {
         return array_merge(parent::getDefaultCommands(), [
-            new HouseCommand(),
+            new BoilerCommand(),
             new SignalCommand(),
         ]);
     }

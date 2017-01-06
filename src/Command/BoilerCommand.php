@@ -16,10 +16,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\ProgressHelper;
 
 /**
- * Class HouseCommand
+ * Class BoilerCommand
  * @package House\Command
  */
-class HouseCommand extends LoopCommand
+class BoilerCommand extends LoopCommand
 {
     /**
      * @var BoilerService

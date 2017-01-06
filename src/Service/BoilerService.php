@@ -180,7 +180,7 @@ class BoilerService
     public function getDesiredTemperature() : float
     {
         $temperature = trim(file_get_contents($this->temperatureFile));
-        if($temperature === '') {
+        if ($temperature === '') {
             $message = sprintf('Temperature could not read from %s', $this->temperatureFile);
             $this->logger->critical($message);
             throw new \RuntimeException($message);
