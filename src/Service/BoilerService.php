@@ -282,7 +282,7 @@ class BoilerService
      * @param \DateTime|null $now
      * @return bool
      */
-    public function enoughTimeHasPassed(Session $previousSession = null, \DateTime $now = null)
+    public function enoughTimeHasPassed(Session $previousSession = null, \DateTime $now = null) : bool
     {
         if (!$previousSession) {
             // When we run the application for the
