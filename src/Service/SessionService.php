@@ -60,6 +60,26 @@ class SessionService
     }
 
     /**
+     * Provides info about a previous session
+     * @param int $sessionID
+     * @return Session
+     */
+    public function getSessionById(int $sessionID): Session
+    {
+        $session = new Session($sessionID, $this->sessionDir);
+        if (!$session->isOpened()) {
+            throw new \Exception('Invalid Session');
+        }
+
+        if (!$session->isClosed()) {
+            throw new \Exception('Incomplete session ');
+        }
+
+        return $session;
+    }
+
+
+    /**
      * @param Session|null $session
      * @return Session
      */

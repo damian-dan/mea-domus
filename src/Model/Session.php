@@ -106,7 +106,7 @@ class Session
 
         if (!$this->startTime) {
             $this->startTime = new \DateTime();
-            $this->startTime->setTimestamp(strtotime(sprintf('%s/start', $this->sessionDirectory)));
+            $this->startTime->setTimestamp(strtotime(file_get_contents(sprintf('%s/start', $this->sessionDirectory))));
         }
         return $this->startTime;
     }
@@ -122,7 +122,7 @@ class Session
 
         if (!$this->stopTime) {
             $this->stopTime = new \DateTime();
-            $this->stopTime->setTimestamp(strtotime(sprintf('%s/stop', $this->sessionDirectory)));
+            $this->stopTime->setTimestamp(strtotime(file_get_contents(sprintf('%s/stop', $this->sessionDirectory))));
         }
         return $this->stopTime;
     }
