@@ -1,5 +1,5 @@
 # mea-domus
-Smart box using RPi to control temperature and in general ... surveillancek
+Smart box using RPi to control temperature and in general ... surveillance
 # Setup
 ## Prerequirements
 - PHP  7
@@ -14,9 +14,10 @@ cd /home/pi
 ```
 git clone https://github.com/dndam/mea-domus.git
 composer install
-chmod +x /home/pi/mea-domus/bin/run
+chmod +x /home/pi/mea-domus/bin/console
 chmod -R pi:pi /home/pi/mea-domus
 chmod 777 /home/pi/mea-domus/data
+chmod 777 /home/pi/mea-domus/logs
 ```
 
 We have two scripts:
@@ -28,10 +29,10 @@ We have two scripts:
     This could be done within Express or another web framework
     
 # ToDo
-1. retrieve CPU and GPU temperature, with a trigger for more than 50o C
+1. Retrieve CPU and GPU temperature, with a trigger for more than 50o C
 2. Introduce http2 features
 3. Add an event/subscriber approach, in which I should be able to start my washing machine
-4. websocket tu update relay state
+4. websocket to update relay state
 5. Add installer.sh
 
 # Mobile app
