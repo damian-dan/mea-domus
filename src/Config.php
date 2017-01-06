@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace House;
 
 use Symfony\Component\Yaml\Exception\ParseException;
-use Home\Exception\InvalidConfigurationPathException;
-use Home\Exception\InvalidConfigurationException;
+use House\Exception\InvalidConfigurationPathException;
+use House\Exception\InvalidConfigurationException;
 use Symfony\Component\Yaml\Yaml;
 use Dflydev\DotAccessData\Data;
 
