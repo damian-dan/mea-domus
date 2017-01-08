@@ -2,11 +2,21 @@
 
 namespace Home\Controller;
 
+use Slim\App;
+
 /**
- * Class TestController
+ * Class AbstractController
  * @package Home\Controller
  */
-class TestController
+class AbstractController
 {
+    /**
+     * @var App
+     */
+    protected $app;
 
+    public function __construct(App $app)
+    {
+        $this->app = $app;
+    }
 }
