@@ -8,7 +8,6 @@ use Psr\Log\LoggerInterface;
 use App\Service\SessionService;
 use App\Utils\Validator;
 
-
 class BoilerService
 {
     /**
@@ -57,8 +56,8 @@ class BoilerService
 
     public function monitor()
     {
-        $session = $this->sessionService->current();
 
+        $session = $this->sessionService->current();
         $prevSessionId = (int)$session->getId() - 1;
         $prevSession = $prevSessionId ? $this->sessionService->getSessionById($prevSessionId) : null;
 
