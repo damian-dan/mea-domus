@@ -1,6 +1,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
+    env(APP_SESSION_DIR): /var/session-info
+
 
 services:
     # default configuration for services in *this* file
@@ -23,5 +25,12 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+    App\Service\SessionService:
+        arguments:
+            $sessionDir: '%kernel.project_dir%/var/session-info'
+
+    App\Service\BoilerService:
+        arguments:
+            $desiredTemperatureFile: '%kernel.project_dir%/config/app.json'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

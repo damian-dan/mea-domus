@@ -7,12 +7,14 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Command\LockableTrait;
+use Symfony\Component\Console\Logger\ConsoleLogger;
+use App\Service\BoilerService;
 
 class BoilerCommand extends Command
 {
     use LockableTrait;
 
-    // command name (after bin/console)
+    // command name
     protected static $defaultName = 'app:boiler';
 
     /**
@@ -21,10 +23,26 @@ class BoilerCommand extends Command
     private $io;
 
     /*
-     * Needed to reset all input and outputs to their initial state
+     * @var bool
      */
     private $shouldStop;
 
+    /**
+     * @var BoilerService
+     */
+    private $boilerService;
+
+    /**
+     * @var ...
+     */
+    private $logger;
+
+    public function __construct(BoilerService $boilerService)
+    {
+        $this->boilerService = $boilerService;
+
+        parent::__construct();
+    }
 
 
     protected function configure()
@@ -41,39 +59,51 @@ class BoilerCommand extends Command
     {
         $this->shouldStop = false;
         $this->io = new SymfonyStyle($input, $output);
+        $this->logger = new ConsoleLogger($output);
+
+        //ToDo:  Add relay state + Gpio pin + Gpio state
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->checkDuplicateProc();
+
         // ToDo: Check if we can use ConsoleEvents::TERMINATE Event instead
         pcntl_signal(SIGTERM, [$this, 'stopCommand']);
         pcntl_signal(SIGINT, [$this, 'stopCommand']);
 
-        if (!$this->lock()) {
-            $output->writeln('<error>The command is already running in another process.</error>');
 
-            return 0;
-        }
+        // This should be removed
+        $t = 0;
+        while (1) {
+            pcntl_signal_dispatch();
+            if ($this->shouldStop) break;
 
-        $t=0;
-        while(1)
-        {
-            //pcntl_signal_dispatch();
-            if ( $this->shouldStop ) break;
+            echo gmdate("H:i:s", $t++) . "\n";
+            $this->boilerService->monitor();
 
-            // All the code should go here
-            echo gmdate("H:i:s", $t++). "\n";
-
+            // ToDo: mov e this as well
             sleep(1);
         }
 
-        $this->release();
+        // Check what is this ???
+        //$this->release();
     }
 
-    public function stopCommand()
+    private function stopCommand()
     {
         $this->shouldStop = true;
         //ToDo: Set output to false
+    }
+
+    private function checkDuplicateProc()
+    {
+        if (!$this->lock()) {
+            $this->io->writeln('<error>The command is already running in another process.</error>');
+            $this->logger->log("error", "Some stupid message");
+
+            exit;
+        }
     }
 
     /**
