@@ -3,10 +3,11 @@
 
 namespace App\Service;
 
+use App\Repository\SensorRepository;
 use function MongoDB\BSON\toJSON;
 use Psr\Log\LoggerInterface;
-use App\Service\SessionService;
 use App\Utils\Validator;
+
 
 class BoilerService
 {
@@ -32,24 +33,40 @@ class BoilerService
      */
     private $validator;
 
+    /*
+     * @var Settings
+     */
+    private $settings;
+
+    /**
+     * @var SensorRepository
+     */
+    private $sensorRepository;
+
     /**
      * BoilerService constructor.
      * @param LoggerInterface $logger
      * @param \App\Service\SessionService $sessionService
      * @param string $desiredTemperatureFile
      * @param Validator $validator
+     * @param SettingsService $settingsService
+     * @param SensorRepository $sensorRepository
      */
     public function __construct(
         LoggerInterface $logger,
         SessionService $sessionService,
         string $desiredTemperatureFile,
-        Validator $validator
+        Validator $validator,
+        SettingsService $settingsService,
+        SensorRepository $sensorRepository
     )
     {
         $this->logger = $logger;
         $this->sessionService = $sessionService;
         $this->desiredTemperatureFile = $desiredTemperatureFile;
         $this->validator = $validator;
+        $this->settings = $settingsService->load();
+        $this->sensorRepository = $sensorRepository;
     }
 
 // ToDo: 1. Add logging; 
@@ -67,7 +84,9 @@ class BoilerService
         }
 
         $desired = $this->getDesiredTemperature();
-        $current = $this->getTemperature($boiler);
+
+        $current = $this->sensorRepository->getTemperatureBySensorId($this->settings->getWorkflow()->type->what);
+
         $tempDiff = $desired - $current;
 
         $session->payload = $this->preparePayload($desired, $current);

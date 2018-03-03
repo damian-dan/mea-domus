@@ -1,4 +1,7 @@
 {
+    "netresearch/jsonmapper": {
+        "version": "v1.4.0"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
