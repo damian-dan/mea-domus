@@ -1,7 +1,7 @@
 {
   "sensors": {
     "1": {
-      "type": "DS18B20",
+      "type": "Ds18b20",
       "name": "Lorem ipsum",
       "id": "28-lorem12qwerty",
       "location": "Living room"
@@ -20,7 +20,7 @@
     "name": "boiler",
     "type": {
       "name": "monitor",
-      "what": "serialID",
+      "what": "28-lorem12qwerty",
       "do": "boiler"
     }
   }

@@ -8,6 +8,7 @@ class Ds18b20 extends Sensor
 
     public function getTemperature()
     {
+        return "ula la";
     }
 
 }
