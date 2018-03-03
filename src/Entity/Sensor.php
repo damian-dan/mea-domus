@@ -10,27 +10,49 @@ namespace App\Entity;
  */
 class Sensor implements SensorInterface
 {
+    /**
+     * @var string
+     */
     private $id;
 
+    /**
+     * @var string
+     */
     private $type;
 
-    public function __construct()
-    {
-    }
-
+    /**
+     * @return string
+     */
     public function getId()
     {
+        return $this->id;
     }
 
-    public function setId()
+    /**
+     * @param string $id
+     * @return Sensor
+     */
+    public function setId($id)
     {
+        $this->id = $id;
+        return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getType()
     {
+        return $this->type;
     }
 
-    public function setType()
+    /**
+     * @param string $type
+     * @return Sensor
+     */
+    public function setType($type)
     {
+        $this->type = $type;
+        return $this;
     }
 }

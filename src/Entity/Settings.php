@@ -5,7 +5,7 @@ namespace App\Entity;
 class Settings
 {
     /**
-     * @var Sensor
+     * @var Sensor[]
      */
     private $sensors;
 
@@ -14,7 +14,7 @@ class Settings
     private $workflow;
 
     /**
-     * @return Sensor
+     * @return Sensor[]
      */
     public function getSensors()
     {
@@ -22,7 +22,7 @@ class Settings
     }
 
     /**
-     * @param Sensor $sensors
+     * @param Sensor[] $sensors
      */
     public function setSensors($sensors)
     {
